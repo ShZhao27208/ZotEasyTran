@@ -11,15 +11,7 @@ This project is a derivative work based on zotero-pdf-translate v2.4.8
 The combined work (upstream code + modifications + new files) is distributed
 under AGPL-3.0-or-later. See LICENSE.
 
-Original additions by ShZhao (including the local dictionary adapter, the
-mechanical English-to-Chinese engine, the domain termbase, the local TTS
-integration, the annotation replay integration, scripts and tests) are
-additionally made available under the Apache License, Version 2.0. See
-LICENSES/Apache-2.0.txt.
-
-This additional Apache-2.0 permission does not relicense upstream-derived
-code. If you redistribute the combined plugin, you must comply with
-AGPL-3.0-or-later. If you reuse only the original additions in a way that does
-not involve upstream code, the Apache-2.0 terms apply to those additions.
+This project is not the official upstream release. Copyright in upstream code
+remains with its original authors and contributors.
 
 Third-party data and libraries are listed in THIRD_PARTY_NOTICES.md.

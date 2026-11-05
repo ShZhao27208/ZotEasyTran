@@ -8,7 +8,6 @@
 [![Zotero 7/8/10](https://img.shields.io/badge/Zotero-7%20%7C%208%20%7C%2010-CC2936?style=flat-square&logo=zotero&logoColor=white)](https://www.zotero.org)
 [![Local first](https://img.shields.io/badge/local--first-offline-1B3A4B?style=flat-square)](#为什么是本地化)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-2F6F5E?style=flat-square)](LICENSE)
-[![Original additions: Apache-2.0](https://img.shields.io/badge/original%20additions-Apache--2.0-C45B45?style=flat-square)](LICENSES/Apache-2.0.txt)
 
 ---
 
@@ -210,15 +209,12 @@ npm run build
 
 ## 许可证与署名
 
-**重要：本项目是 AGPL-3.0-or-later 衍生作品，不能整体改为 Apache-2.0。**
+本项目是 **AGPL-3.0-or-later** 衍生作品。
 
 - 上游 `zotero-pdf-translate` 采用 **AGPL-3.0-or-later**；
-- 因此本仓库整体（包含上游代码与修改）按 **AGPL-3.0-or-later** 分发，见 [LICENSE](LICENSE)；
-- 本项目新增的原创部分，版权人额外按 **Apache-2.0** 提供，见 [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt)；
-- 两者冲突时，涉及上游代码的组合分发以 AGPL-3.0-or-later 为准；
-- 上游版权与第三方数据源署名见 [NOTICE](NOTICE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
-换句话说：**新增内容可以用 Apache-2.0；包含上游代码的整个插件必须以 AGPL-3.0-or-later 发布。**
+- 本仓库整体（包含上游代码、修改与新增部分）按 **AGPL-3.0-or-later** 分发，见 [LICENSE](LICENSE)；
+- 上游版权与第三方数据源署名见 [NOTICE](NOTICE) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；
+- 不使用 Apache-2.0 作为本项目许可证。
 
 ## 致谢
 
