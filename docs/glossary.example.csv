@@ -1,0 +1,21 @@
+term,translation,domain,caseSensitive
+framework,框架,,0
+approach,方法,,0
+accuracy,准确率,,0
+significance,显著性,,0
+statistical significance,统计显著性,统计,0
+control group,对照组,医学,0
+experimental group,实验组,医学,0
+state-of-the-art,最先进的,,0
+benchmark,基准,,0
+dataset,数据集,,0
+hyperparameter,超参数,,0
+fine-tuning,微调,,0
+embedding,嵌入,,0
+attention mechanism,注意力机制,,0
+transformer,Transformer,,1
+ablation study,消融实验,,0
+baseline,基线,,0
+p-value,p 值,统计,0
+confidence interval,置信区间,统计,0
+effect size,效应量,统计,0
