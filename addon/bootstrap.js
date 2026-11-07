@@ -51,11 +51,17 @@ async function onMainWindowUnload({ window }, reason) {
 }
 
 function shutdown({ id, version, resourceURI, rootURI }, reason) {
+  // Run cleanup for APP_SHUTDOWN too: a plugin-created chrome window left
+  // open can keep the Zotero process alive with a tiny window.
+  try {
+    Zotero.__addonInstance__?.hooks.onShutdown();
+  } catch (e) {
+    Zotero.debug(`[ZotEasyTran] shutdown cleanup failed: ${e}`);
+  }
+
   if (reason === APP_SHUTDOWN) {
     return;
   }
-
-  Zotero.__addonInstance__?.hooks.onShutdown();
 
   Cc["@mozilla.org/intl/stringbundle;1"]
     .getService(Components.interfaces.nsIStringBundleService)

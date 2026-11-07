@@ -5,6 +5,7 @@ import {
   registerPrefsWindow,
 } from "./modules/preferenceWindow";
 import {
+  closeWindowPanel,
   registerReaderTabPanel,
   updateReaderTabPanels,
 } from "./modules/tabpanel";
@@ -28,6 +29,7 @@ import { registerItemPaneInfoRows } from "./modules/infoBox";
 import { registerCustomFields } from "./modules/fields";
 import { stopTts } from "./modules/local/tts";
 import { runSelfTest } from "./modules/local/diagnostics";
+import { closeDictionaryConnection } from "./modules/local/dictionary";
 
 async function onStartup() {
   await Promise.all([
@@ -110,20 +112,46 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   win.addEventListener("blur", () => {
     addon.data.translate.concatKey = false;
   });
+  win.addEventListener("unload", () => {
+    closeWindowPanel();
+    try {
+      (Zotero as any).ProgressWindowSet?.closeAll?.();
+    } catch {
+      // best effort
+    }
+  });
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
-  win.document
-    .querySelector(`[href="${config.addonRef}-mainWindow.ftl"]`)
-    ?.remove();
+  try {
+    win.document
+      .querySelector(`[href="${config.addonRef}-mainWindow.ftl"]`)
+      ?.remove();
+  } catch {
+    // The window may already be gone during application shutdown.
+  }
 }
 
-function onShutdown(): void {
+async function onShutdown(): Promise<void> {
+  // The standalone panel is a separate chrome window. If it stays open during
+  // Zotero shutdown, the process can survive with a tiny leftover window.
+  closeWindowPanel();
   stopTts();
+  // Progress windows ("Copied to Clipboard" etc.) are separate MozillaDialog
+  // windows. Close them before Zotero quits, otherwise a tiny dialog can keep
+  // the process alive.
+  try {
+    (Zotero as any).ProgressWindowSet?.closeAll?.();
+  } catch {
+    // best effort
+  }
+  // The shutdown barrier waits for all SQLite connections; close the external
+  // dictionary DB before unregistering.
+  await closeDictionaryConnection();
   ztoolkit.unregisterAll();
-  Zotero.getMainWindows().forEach((win) => {
-    onMainWindowUnload(win);
-  });
+  for (const win of Zotero.getMainWindows()) {
+    void onMainWindowUnload(win);
+  }
   // Remove addon object
   addon.data.alive = false;
   // @ts-ignore - Plugin instance is not typed

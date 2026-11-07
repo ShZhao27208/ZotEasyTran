@@ -88,11 +88,29 @@ export function dictionaryFileExists(
   }
 }
 
-export function resetDictionaryConnection(): void {
+/**
+ * Close the external dictionary connection.
+ *
+ * Zotero's shutdown barrier waits for every SQLite connection to close. An
+ * open dictionary.sqlite connection therefore keeps the Zotero process alive
+ * after the main window disappears.
+ */
+export async function closeDictionaryConnection(): Promise<void> {
+  const db = connection;
   connection = null;
   connectionPath = "";
   openError = undefined;
   wordCache.clear();
+  if (!db) return;
+  try {
+    await db.closeDatabase(true);
+  } catch (error) {
+    Zotero.debug(`[ZotEasyTran] close dictionary failed: ${error}`);
+  }
+}
+
+export async function resetDictionaryConnection(): Promise<void> {
+  await closeDictionaryConnection();
 }
 
 async function getDictionary(): Promise<_ZoteroTypes.DBConnection> {
@@ -100,7 +118,7 @@ async function getDictionary(): Promise<_ZoteroTypes.DBConnection> {
   if (connection && connectionPath === path) {
     return connection;
   }
-  resetDictionaryConnection();
+  await resetDictionaryConnection();
 
   if (!dictionaryFileExists(path)) {
     throw new LocalDictionaryError("missing", `本地词典未找到：${path}`, path);
@@ -114,7 +132,7 @@ async function getDictionary(): Promise<_ZoteroTypes.DBConnection> {
     return connection;
   } catch (error) {
     openError = String(error);
-    resetDictionaryConnection();
+    await resetDictionaryConnection();
     throw new LocalDictionaryError(
       "open",
       `无法打开本地词典：${openError}`,

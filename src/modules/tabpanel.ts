@@ -59,17 +59,27 @@ export function registerReaderTabPanel() {
   if (key) paneKey = key;
 }
 
-async function openWindowPanel() {
-  if (addon.data.panel.windowPanel && !addon.data.panel.windowPanel.closed) {
-    addon.data.panel.windowPanel.close();
+export function closeWindowPanel(): void {
+  const win = addon.data.panel.windowPanel;
+  addon.data.panel.windowPanel = null;
+  if (win && !win.closed) {
+    try {
+      win.close();
+    } catch {
+      // The app may already be shutting down.
+    }
   }
+}
+
+async function openWindowPanel() {
+  closeWindowPanel();
   const dialogData = {
     loadLock: Zotero.Promise.defer(),
   };
   const win: Window = ztoolkit.getGlobal("openDialog")(
     `chrome://${config.addonRef}/content/standalone.xhtml`,
     `${config.addonRef}-standalone`,
-    `chrome,extrachrome,menubar,resizable=yes,scrollbars,status,dialog=no,${
+    `chrome,extrachrome,menubar,resizable=yes,scrollbars,status,dialog=no,width=760,height=640,${
       getPref("keepWindowTop") ? ",alwaysRaised=yes" : ""
     }`,
     dialogData,
@@ -78,6 +88,11 @@ async function openWindowPanel() {
   buildExtraPanel(win.document);
   updateExtraPanel(win.document);
   addon.data.panel.windowPanel = win;
+  win.addEventListener("unload", () => {
+    if (addon.data.panel.windowPanel === win) {
+      addon.data.panel.windowPanel = null;
+    }
+  });
 }
 
 export function updateReaderTabPanels() {

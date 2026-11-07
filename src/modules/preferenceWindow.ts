@@ -611,7 +611,7 @@ function wireLocalSettings() {
         const result = await fp.show();
         if (result === fp.returnOK) {
           setPref("local.dictPath", fp.file);
-          resetDictionaryConnection();
+          await resetDictionaryConnection();
           await updateLocalDictStatus();
         }
       } catch (error) {
@@ -622,7 +622,7 @@ function wireLocalSettings() {
   doc
     .querySelector(`#${makeId("refreshDict")}`)
     ?.addEventListener("command", async () => {
-      resetDictionaryConnection();
+      await resetDictionaryConnection();
       await updateLocalDictStatus();
     });
 
@@ -646,7 +646,7 @@ function wireLocalSettings() {
   doc
     .querySelector(`#${makeId("localDictPath")}`)
     ?.addEventListener("change", async () => {
-      resetDictionaryConnection();
+      await resetDictionaryConnection();
       await updateLocalDictStatus();
     });
 
