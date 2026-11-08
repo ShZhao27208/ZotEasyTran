@@ -584,6 +584,10 @@ async function buildWordNet(db, assets) {
   const insertSynset = db.prepare(
     "INSERT OR REPLACE INTO synsets(id, pos, gloss, lexname) VALUES (?, ?, ?, ?)",
   );
+  const insertExample = db.prepare(
+    "INSERT OR IGNORE INTO synset_examples(synset, en, ord) VALUES (?, ?, ?)",
+  );
+  let exampleCount = 0;
 
   const dataFiles = [
     ["data.noun", "n"],
@@ -616,11 +620,18 @@ async function buildWordNet(db, assets) {
         .trim()
         .replace(/\s+/g, " ");
       insertSynset.run(id, idPos, gloss, lexnames.get(lexFilenum) || "");
+      let exampleOrd = 0;
+      for (const match of gloss.matchAll(/"([^"]{10,400})"/g)) {
+        const example = match[1].trim();
+        if (!example) continue;
+        insertExample.run(id, example, exampleOrd++);
+        exampleCount++;
+      }
       synsetCount++;
     }
   }
   db.exec("COMMIT");
-  log(`WordNet synsets: ${synsetCount}`);
+  log(`WordNet synsets: ${synsetCount}, examples: ${exampleCount}`);
 
   // English lemmas with sense ranks from index.sense.
   const senseFile = path.join(wn, "index.sense");
@@ -915,6 +926,13 @@ async function main() {
       rank INTEGER
     );
 
+    CREATE TABLE synset_examples(
+      synset TEXT NOT NULL,
+      en TEXT NOT NULL,
+      ord INTEGER,
+      UNIQUE(synset, en)
+    );
+
     CREATE TABLE glossary(
       term_lc TEXT NOT NULL,
       term TEXT NOT NULL,
@@ -945,6 +963,7 @@ async function main() {
     CREATE INDEX idx_forms_form ON forms(form_lc);
     CREATE INDEX idx_synset_words_synset ON synset_words(synset, lang);
     CREATE INDEX idx_synset_words_lemma ON synset_words(lang, lemma);
+    CREATE INDEX idx_synset_examples_synset ON synset_examples(synset);
     CREATE INDEX idx_glossary_term ON glossary(term_lc);
   `);
 
@@ -966,6 +985,9 @@ async function main() {
       synsets: count("synsets"),
       synsetWordsEn: db
         .prepare("SELECT COUNT(*) AS n FROM synset_words WHERE lang = 'en'")
+        .get().n,
+      synsetExamples: db
+        .prepare("SELECT COUNT(*) AS n FROM synset_examples")
         .get().n,
       synsetWordsZh: db
         .prepare("SELECT COUNT(*) AS n FROM synset_words WHERE lang = 'cmn'")

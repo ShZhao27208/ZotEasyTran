@@ -45,7 +45,7 @@ export async function runSelfTest(): Promise<void> {
           phoneticSource: entry.phoneticSource,
           senses: entry.senses.length,
           forms: entry.forms.slice(0, 6),
-          preview: formatWordEntry(entry).split("\n").slice(0, 6),
+          preview: formatWordEntry(entry).split("\n").slice(0, 12),
         }
       : null;
   } catch (error) {

@@ -59,6 +59,11 @@ function unique(items: string[]): string[] {
   return out;
 }
 
+function truncate(text: string, max: number): string {
+  const value = normalizeMultiline(text);
+  return value.length > max ? `${value.slice(0, max - 1)}…` : value;
+}
+
 function joinSenses(senses: DictionarySense[]): string {
   return unique(senses.map((sense) => sense.zh)).join("；");
 }
@@ -80,6 +85,9 @@ function header(entry: DictionaryEntry): string {
       "★".repeat(Math.min(5, entry.collins)) +
         "☆".repeat(Math.max(0, 5 - entry.collins)),
     );
+  }
+  if (entry.oxford) {
+    parts.push("Oxford");
   }
   let line = parts.join("  ");
   if (entry.matchedForm && entry.matchedForm !== entry.word) {
@@ -187,6 +195,48 @@ export function formatWordEntry(
   if (lines.length === 1) {
     const raw = normalizeMultiline(entry.translation);
     if (raw) lines.push(raw);
+  }
+
+  const definition =
+    entry.definition ||
+    entry.synsets.find((synset) => synset.gloss)?.gloss ||
+    "";
+  if (definition) {
+    lines.push(`英文释义：${truncate(definition, 360)}`);
+  }
+
+  const examples = unique(entry.examples).slice(0, 2);
+  if (examples.length) {
+    lines.push(
+      `例句：${examples.map((text) => truncate(text, 220)).join("；")}`,
+    );
+  }
+
+  const synonyms = unique(
+    entry.synsets.flatMap((synset) => synset.lemmas || []),
+  ).slice(0, 10);
+  if (synonyms.length) {
+    lines.push(`近义词：${synonyms.join(" / ")}`);
+  }
+
+  const TAG_LABELS: Record<string, string> = {
+    cet4: "CET-4",
+    cet6: "CET-6",
+    ky: "考研",
+    toefl: "TOEFL",
+    ielts: "IELTS",
+    gre: "GRE",
+    gk: "高考",
+    zk: "中考",
+  };
+  const tags = unique(
+    String(entry.tag || "")
+      .split(/[\s,;]+/)
+      .filter(Boolean)
+      .map((tag) => TAG_LABELS[tag.toLowerCase()] || tag),
+  );
+  if (tags.length) {
+    lines.push(`标签：${tags.join(" · ")}`);
   }
 
   if (entry.forms.length) {

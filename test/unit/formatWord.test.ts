@@ -13,12 +13,14 @@ function entry(overrides: Record<string, unknown> = {}) {
     pos: "n",
     collins: 4,
     oxford: 1,
+    tag: "cet4 cet6",
     bnc: 551,
     frq: 504,
     exchange: "",
     isPhrase: false,
     senses: [],
     forms: [],
+    examples: [],
     synsets: [],
     ...overrides,
   } as any;
@@ -102,4 +104,30 @@ test("marks a surface form resolved through the lemma table", () => {
     }),
   );
   assert.match(text, /（由 studies 还原）/);
+});
+
+test("includes definition, examples, synonyms and exam tags", () => {
+  const text = formatWordEntry(
+    entry({
+      definition: "a hypothetical description of a complex entity or process",
+      tag: "cet4 ky",
+      examples: ["a model of clarity", "the computer program was based on a model"],
+      synsets: [
+        {
+          id: "1-n",
+          pos: "n",
+          gloss: "a hypothetical description",
+          lexname: "noun.cognition",
+          rank: 1,
+          zh: ["模型"],
+          lemmas: ["example", "framework"],
+        },
+      ],
+    }),
+  );
+
+  assert.match(text, /英文释义：a hypothetical description/);
+  assert.match(text, /例句：a model of clarity/);
+  assert.match(text, /近义词：example \/ framework/);
+  assert.match(text, /标签：CET-4 · 考研/);
 });

@@ -29,6 +29,7 @@ export interface DictionarySynset {
   lexname: string;
   rank: number;
   zh: string[];
+  lemmas: string[];
 }
 
 export interface DictionaryEntry {
@@ -41,12 +42,14 @@ export interface DictionaryEntry {
   pos: string;
   collins: number;
   oxford: number;
+  tag: string;
   bnc: number;
   frq: number;
   exchange: string;
   isPhrase: boolean;
   senses: DictionarySense[];
   forms: string[];
+  examples: string[];
   synsets: DictionarySynset[];
   /** Set when the queried surface form was resolved through the lemma table. */
   matchedForm?: string;
@@ -191,6 +194,7 @@ interface WordRow {
   pos: string;
   collins: number;
   oxford: number;
+  tag: string;
   bnc: number;
   frq: number;
   exchange: string;
@@ -204,7 +208,7 @@ async function queryWord(
   const lc = surface.toLowerCase();
   const rows = await db.queryAsync(
     `SELECT word, word_lc, phonetic, phonetic_source, translation, definition,
-            pos, collins, oxford, bnc, frq, exchange, is_phrase
+            pos, collins, oxford, tag, bnc, frq, exchange, is_phrase
        FROM words
       WHERE word_lc = ?
       ORDER BY CASE WHEN word = ? THEN 0 ELSE 1 END,
@@ -288,6 +292,13 @@ async function querySynsets(
         LIMIT 4`,
       [row.id],
     );
+    const enRows = await db.queryAsync(
+      `SELECT lemma FROM synset_words
+        WHERE synset = ? AND lang = 'en' AND lemma <> ? COLLATE NOCASE
+        ORDER BY length(lemma) ASC
+        LIMIT 10`,
+      [row.id, word],
+    );
     out.push({
       id: String(row.id),
       pos: String(row.pos || ""),
@@ -295,9 +306,33 @@ async function querySynsets(
       lexname: String(row.lexname || ""),
       rank: Number(row.rank) || 0,
       zh: (zhRows || []).map((r: any) => String(r.lemma)),
+      lemmas: (enRows || []).map((r: any) => String(r.lemma)),
     });
   }
   return out;
+}
+
+async function queryExamples(
+  db: _ZoteroTypes.DBConnection,
+  word: string,
+): Promise<string[]> {
+  try {
+    const rows = await db.queryAsync(
+      `SELECT DISTINCT e.en AS en
+         FROM synset_examples e
+         JOIN synset_words sw ON sw.synset = e.synset
+        WHERE sw.lang = 'en' AND sw.lemma = ? COLLATE NOCASE
+        ORDER BY length(e.en) ASC
+        LIMIT 4`,
+      [word],
+    );
+    return (rows || [])
+      .map((row: any) => String(row.en || "").trim())
+      .filter((text: string) => text.length >= 8);
+  } catch {
+    // Older dictionary builds do not have synset_examples.
+    return [];
+  }
 }
 
 function fallbackSenses(translation: string): DictionarySense[] {
@@ -375,12 +410,14 @@ export async function lookupWord(raw: string): Promise<DictionaryEntry | null> {
     pos: row.pos || "",
     collins: Number(row.collins) || 0,
     oxford: Number(row.oxford) || 0,
+    tag: String(row.tag || ""),
     bnc: Number(row.bnc) || 0,
     frq: Number(row.frq) || 0,
     exchange: row.exchange || "",
     isPhrase: Number(row.is_phrase) === 1,
     senses: senses.length ? senses : fallbackSenses(row.translation),
     forms: await queryForms(db, row.word_lc),
+    examples: await queryExamples(db, row.word),
     synsets: await querySynsets(db, row.word),
     matchedForm,
   };
