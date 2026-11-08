@@ -1,5 +1,10 @@
 import { getPref } from "../../utils/prefs";
 import { getSpeechWindow, getSynth, getUtteranceCtor } from "./ttsWindow";
+import {
+  isVoiceServiceEnabled,
+  speakViaVoiceService,
+  stopVoiceService,
+} from "./voiceService";
 
 export interface SpeakOptions {
   win?: Window | null;
@@ -33,6 +38,7 @@ export function getTtsRate(): number {
 
 export function stopTts(): void {
   state.generation++;
+  stopVoiceService();
   state.queue = [];
   const synth = state.synth;
   state.synth = null;
@@ -116,6 +122,26 @@ export function splitForSpeech(text: string, max = MAX_CHUNK): string[] {
 export function speak(text: string, options: SpeakOptions = {}): boolean {
   const chunks = splitForSpeech(text);
   if (!chunks.length) return false;
+  stopTts();
+  if (isVoiceServiceEnabled()) {
+    const generation = state.generation;
+    void speakViaVoiceService(text, {
+      win: options.win,
+      lang: options.lang,
+      rate: options.rate ?? getTtsRate(),
+    }).then((ok) => {
+      if (!ok && generation === state.generation) {
+        speakSystem(text, options);
+      }
+    });
+    return true;
+  }
+  return speakSystem(text, options);
+}
+
+export function speakSystem(text: string, options: SpeakOptions = {}): boolean {
+  const chunks = splitForSpeech(text);
+  if (!chunks.length) return false;
 
   let win = options.win || getSpeechWindow();
   if (!win || !getUtteranceCtor(win)) {
@@ -134,7 +160,6 @@ export function speak(text: string, options: SpeakOptions = {}): boolean {
     return false;
   }
 
-  stopTts();
   const generation = state.generation;
   // Debug output only; never logs full paragraphs.
   try {

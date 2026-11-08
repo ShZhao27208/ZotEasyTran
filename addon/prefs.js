@@ -175,5 +175,8 @@ pref("__prefsPrefix__.local.autoPlay", true);
 pref("__prefsPrefix__.local.voice", "");
 pref("__prefsPrefix__.local.rate", "0.95");
 pref("__prefsPrefix__.local.stopOnTabSwitch", true);
+pref("__prefsPrefix__.local.voiceService", true);
+pref("__prefsPrefix__.local.voiceServiceUrl", "http://127.0.0.1:9880/tts");
+pref("__prefsPrefix__.local.voiceServiceProfile", "D:/Amodel/dd/voice.json");
+pref("__prefsPrefix__.local.voiceServiceTimeout", "8");
 pref("__prefsPrefix__.local.paragraphLimit", "0");
-

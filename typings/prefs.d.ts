@@ -144,6 +144,10 @@ declare namespace _ZoteroTypes {
       "local.voice": string;
       "local.rate": string;
       "local.stopOnTabSwitch": boolean;
+      "local.voiceService": boolean;
+      "local.voiceServiceUrl": string;
+      "local.voiceServiceProfile": string;
+      "local.voiceServiceTimeout": string;
       "local.paragraphLimit": string;
     };
   }

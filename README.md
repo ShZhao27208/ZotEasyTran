@@ -55,6 +55,7 @@ ZotEasyTran 的选择很明确：**优先本地化、低延迟、可定制**。
 
 ### 发音与注释
 
+- 默认优先使用本地 **GPT-SoVITS** 音色服务（`127.0.0.1:9880`）；服务未启动或超时自动回落到系统语音。
 - 使用系统离线语音（Windows SAPI / macOS / Linux 语音）朗读**英文原文**。
 - 在 PDF 中点击高亮/注释，注释弹窗出现时自动重播；点弹窗里的中文可再次重播。
 - 阅读器侧栏的注释头也有 🔊。
@@ -159,6 +160,23 @@ E:\Zotero_Storage\zoteasytran\dictionary.sqlite
 - 只有明确的下半句片段才继续拼接。
 
 仍建议：**平时不要勾选“拼接”**；确需拼接时再按住 Ctrl。
+
+## 本地音色（GPT-SoVITS）
+
+默认播报音色来自本机 `127.0.0.1:9880` 的 GPT-SoVITS 微调服务；插件本身不加载模型，只发 HTTP 请求。
+
+1. 先启动服务：
+
+   ```bat
+   D:\Amodel\dd\scripts\start_api_liuyifei_ft.bat
+   ```
+
+2. 打开 `http://127.0.0.1:9880/docs` 确认返回 200。
+3. 插件默认读取 `D:/Amodel/dd/voice.json` 的参考音频、prompt 和采样参数；服务地址/配置可在 about:config 的 `extensions.zotero.ZotEasyTran.local.voiceService*` 中修改。
+4. 每条文本第一次合成后会缓存到 `<Zotero 数据目录>/zoteasytran/voice-cache/*.wav`，之后重播/再次播报不再请求模型。
+5. 服务未启动、请求超时或播放失败时，自动回落到系统语音，不影响阅读。
+
+> 想完全离线复播同一段文字：合成一次后缓存即可；新的文本仍需要本地服务首次合成。
 
 ## 构建与开发
 
