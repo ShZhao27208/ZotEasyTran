@@ -17,18 +17,21 @@ const qWord = db?.prepare(
 const qSenses = db?.prepare(
   "SELECT pos, zh, domain, is_core FROM senses WHERE word_lc = ? ORDER BY ord",
 );
-const qLemma = db?.prepare("SELECT lemma FROM forms WHERE form_lc = ? LIMIT 1");
+const qLemma = db?.prepare(
+  "SELECT lemma FROM forms WHERE form_lc = ? ORDER BY CASE WHEN form = lemma THEN 1 ELSE 0 END LIMIT 1",
+);
 
 function makeLexicon() {
   return {
     async lookupWord(word: string) {
       let lc = word.toLowerCase();
       let row = qWord?.get(lc) as any;
-      if (!row) {
-        const lemma = qLemma?.get(lc) as any;
-        if (lemma?.lemma) {
+      const lemma = qLemma?.get(lc) as any;
+      if (lemma?.lemma && lemma.lemma !== lc) {
+        const lemmaRow = qWord?.get(lemma.lemma) as any;
+        if (lemmaRow) {
           lc = lemma.lemma;
-          row = qWord?.get(lc) as any;
+          row = lemmaRow;
         }
       }
       if (!row) return null;
@@ -191,6 +194,43 @@ test("regression: domain terms and tagging", { skip: !hasDb }, async () => {
       ["抗爆性"],
       ["blast-resistance"],
     ],
+    [
+      "Hierarchical hydrogen bonds and synergistic dynamic bonds dissipate energy.",
+      ["多级氢键", "协同动态键", "耗散"],
+      [],
+    ],
+    [
+      "Aggregation-induced emission enables optical anti-counterfeiting and information encryption.",
+      ["聚集诱导发光", "光学防伪", "信息加密"],
+      [],
+    ],
+    [
+      "The elastomer exhibits record toughness and excellent recyclability.",
+      ["弹性体", "创纪录", "韧性"],
+      [],
+    ],
+    [
+      "Ionic radii and coordination number affect the La3+ coordination.",
+      ["离子半径", "配位数", "配位"],
+      [],
+    ],
+    [
+      "DSC and TGA were used to evaluate the thermal stability.",
+      ["差示扫描量热法", "热重分析", "热稳定性"],
+      [],
+    ],
+    [
+      "The composite shows high tensile strength and fracture toughness.",
+      ["复合材料", "拉伸强度"],
+      [],
+    ],
+    ["Recyclability is important for sustainable materials.", ["可回收性"], []],
+    [
+      "Fracture toughness is important for structural materials.",
+      ["断裂韧性"],
+      [],
+    ],
+    ["Information encryption protects optical patterns.", ["信息加密"], []],
   ];
   for (const [english, expected, forbidden] of cases) {
     const chinese = await translateText(english, lexicon as any);

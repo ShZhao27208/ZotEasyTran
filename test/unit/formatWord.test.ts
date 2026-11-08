@@ -111,7 +111,10 @@ test("includes definition, examples, synonyms and exam tags", () => {
     entry({
       definition: "a hypothetical description of a complex entity or process",
       tag: "cet4 ky",
-      examples: ["a model of clarity", "the computer program was based on a model"],
+      examples: [
+        "a model of clarity",
+        "the computer program was based on a model",
+      ],
       synsets: [
         {
           id: "1-n",

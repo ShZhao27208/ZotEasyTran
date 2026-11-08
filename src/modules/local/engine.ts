@@ -13,6 +13,11 @@
 
 import { ACADEMIC_PHRASES, ACADEMIC_TERMS } from "./academicTerms.ts";
 import { DOMAIN_PHRASES, DOMAIN_TERMS } from "./domainTerms.ts";
+import {
+  MATERIALS_PHRASES,
+  MATERIALS_TERMS,
+  expandMaterialsAbbreviations,
+} from "./materialsTerms.ts";
 
 export interface EngineSense {
   pos: string | null;
@@ -35,10 +40,17 @@ export interface EngineLexicon {
   glossary?: Map<string, string>;
 }
 
-const TERMS: Record<string, string> = { ...ACADEMIC_TERMS, ...DOMAIN_TERMS };
+const TERMS: Record<string, string> = {
+  ...ACADEMIC_TERMS,
+  ...DOMAIN_TERMS,
+  ...MATERIALS_TERMS,
+};
 const PHRASES: Record<string, string> = {
   ...ACADEMIC_PHRASES,
   ...DOMAIN_PHRASES,
+  ...MATERIALS_PHRASES,
+  // Multi-word entries that happen to live in the single-word map.
+  ...MATERIALS_TERMS,
 };
 
 type Tag =
@@ -276,7 +288,11 @@ export function normalizeText(raw: string): string {
     .replace(/(\p{Ll})-\s*\n\s*(\p{Ll})/gu, "$1$2")
     .replace(/\s*\n\s*/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .replace(
+      /\b(DSC|TGA|DTA|DMA|XRD|XPS|SEM|TEM|STEM|HRTEM|AFM|STM|EDS|EELS|FTIR|NMR|EIS|GPC|BET|ICP|SAXS|WAXS|DLS|CVD|PVD|ALD|PLD|MBE|MOF|COF|CNTs?|AIE|TENG|OLED|LIB)\b/g,
+      (m) => expandMaterialsAbbreviations(m),
+    );
 }
 
 /**
@@ -649,6 +665,27 @@ function posGroup(pos: string): string {
   return pos;
 }
 
+const ED_ADJECTIVES = new Set([
+  "increased",
+  "decreased",
+  "reduced",
+  "enhanced",
+  "improved",
+  "measured",
+  "proposed",
+  "based",
+  "related",
+  "induced",
+  "aligned",
+  "obtained",
+  "calculated",
+  "estimated",
+  "reported",
+  "selected",
+  "developed",
+  "known",
+]);
+
 async function annotate(tokens: Tok[], lexicon: EngineLexicon): Promise<void> {
   const words = tokens
     .filter((t) => !t.punct && !t.prot && t.tag === "OTHER")
@@ -825,7 +862,9 @@ async function annotate(tokens: Tok[], lexicon: EngineLexicon): Promise<void> {
     } else if (
       groups.has("a") &&
       nextIsNoun &&
-      (i === 0 || ["DET", "ADJ", "NUM", "ADV"].includes(prev?.tag || ""))
+      (i === 0 ||
+        ["DET", "ADJ", "NUM"].includes(prev?.tag || "") ||
+        (prev?.tag === "ADV" && ED_ADJECTIVES.has(lower)))
     ) {
       tok.tag = "ADJ";
     } else if (groups.has("ad")) {

@@ -5,6 +5,7 @@ import { formatWordEntry } from "../local/formatWord";
 import { attachTts } from "../local/autoTts";
 import { getRealLexicon } from "../local/realLexicon";
 import { isMostlyCJK, translateText } from "../local/engine";
+import { lookupMaterialsTerm } from "../local/materialsTerms";
 import { TranslateService } from "./base";
 
 type TaskData = Required<TranslateTask>;
@@ -95,11 +96,24 @@ export const ZotEasyTranDict: TranslateService = {
     }
     try {
       const entry = await lookupWord(data.raw);
+      const term = lookupMaterialsTerm(data.raw);
       if (!entry) {
+        if (term) {
+          data.result = `${data.raw.trim()}\n[材料] ${term}\n（本地材料术语表）`;
+          attachTts(data, data.raw);
+          return;
+        }
         data.result = `未收录：${data.raw.trim()}`;
         return;
       }
       data.result = formatWordEntry(entry, { showSenses: showSenses() });
+      if (
+        term &&
+        !data.result.includes(term) &&
+        !entry.translation.includes(term)
+      ) {
+        data.result += `\n[材料] ${term}`;
+      }
       Zotero.debug(
         `[ZotEasyTran] word ${JSON.stringify(data.raw.slice(0, 80))} => ${JSON.stringify(data.result.slice(0, 160))}`,
       );
