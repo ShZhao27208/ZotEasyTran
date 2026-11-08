@@ -40,11 +40,11 @@ ZET_ASSETS=/path/to/assets ZET_DB=/path/to/dictionary.sqlite node scripts/build-
 Measured on this machine:
 
 - build time: ~7 s
-- output: `dist/dictionary.sqlite` ~241 MB
+- output: `dist/dictionary.sqlite` ~247 MB
 - words: 770,611 (366,599 phrases)
 - senses: 1,195,449
 - forms: 90,198
-- WordNet synsets: 117,659 (206,941 English lemmas, 79,809 Chinese lemmas)
+- WordNet synsets: 117,659 (206,941 English lemmas, 79,809 Chinese lemmas, 48,128 examples)
 - phonetic coverage: ECDICT 218,065 + CMU 83,506 (academic words: 99.6% union)
 
 `scripts/check-dict.mjs` validates counts and sample entries.
@@ -61,13 +61,15 @@ forms(form_lc, form, lemma)              -- inflection -> lemma
 
 synsets(id, pos, gloss, lexname)         -- WordNet 3.0
 synset_words(synset, lang, lemma, rank)  -- lang: en | cmn
+synset_examples(synset, en, ord)          -- WordNet example sentences
 
 glossary(term_lc, term, translation, domain, case_sensitive)
 meta(key, value)
 ```
 
 Indexes: `words(word_lc)`, `senses(word_lc)`, `forms(form_lc)`,
-`synset_words(synset, lang)`, `synset_words(lang, lemma)`.
+`synset_words(synset, lang)`, `synset_words(lang, lemma)`,
+`synset_examples(synset)`.
 
 ## Sense model
 
@@ -77,6 +79,9 @@ Indexes: `words(word_lc)`, `senses(word_lc)`, `forms(form_lc)`,
   `is_core = 1` and displayed as **本义**; remaining senses are **引申义**.
 - Senses with a domain tag are grouped as **专业义** (e.g. `[计算机]`).
 - `[网络]` entries are displayed last and never marked primary.
+- WordNet/COW supply synset glosses, English lemmas (近义词), example
+  sentences, and Chinese lemmas. The word card shows the ECDICT English
+  definition, up to two examples, synonyms, exam tags and the Oxford flag.
 - WordNet/COW supply synset glosses and Chinese lemmas for future sense
   disambiguation; the v1 engine mainly uses ECDICT senses plus the curated
   academic termbase.
