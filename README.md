@@ -172,7 +172,7 @@ E:\Zotero_Storage\zoteasytran\dictionary.sqlite
    ```
 
 2. 打开 `http://127.0.0.1:9880/docs` 确认返回 200。
-3. 插件默认读取 `D:/Amodel/dd/voice.json` 的参考音频、prompt 和采样参数；服务地址/配置可在 about:config 的 `extensions.zotero.ZotEasyTran.local.voiceService*` 中修改。
+3. 插件默认读取 `D:/Amodel/dd/voice.json` 的参考音频、prompt 和采样参数；服务地址/配置可在 about:config 的 `extensions.zotero.ZotEasyTran.local.voiceService*` 中修改。`fragment_interval` 默认跟随 voice.json（当前 0.08），也可用 `local.voiceServiceFragmentInterval` 单独覆盖。
 4. 每条文本第一次合成后会缓存到 `<Zotero 数据目录>/zoteasytran/voice-cache/*.wav`，之后重播/再次播报不再请求模型。
 5. 服务未启动、请求超时或播放失败时，自动回落到系统语音，不影响阅读。
 

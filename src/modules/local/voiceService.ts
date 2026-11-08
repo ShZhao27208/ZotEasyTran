@@ -1,4 +1,5 @@
 import { getPref } from "../../utils/prefs";
+import { resolveFragmentInterval } from "./voiceConfig.ts";
 import { getSpeechWindow } from "./ttsWindow";
 
 /**
@@ -139,8 +140,14 @@ async function synthesize(
     5,
     Number(getPref("local.voiceServiceTimeout") || profile.timeout || 20),
   );
+  const fragmentInterval = resolveFragmentInterval(
+    profile.fragment_interval,
+    String(getPref("local.voiceServiceFragmentInterval") || ""),
+  );
   const tag = String(profile.cache_tag || "gptsovits");
-  const key = `${fnv1a(`${text}|${lang}|${rate}|${tag}`)}-${lang}-${rate}`;
+  const key = `${fnv1a(
+    `${text}|${lang}|${rate}|${tag}|${fragmentInterval}|${profile.seed ?? 42}`,
+  )}-${lang}-${rate}`;
   const path = cachePathFor(key);
   const cached = await readCache(path);
   if (cached) return { bytes: cached, path };
@@ -158,7 +165,9 @@ async function synthesize(
     media_type: "wav",
     streaming_mode: false,
     speed_factor: Number(rate) || 1,
-    fragment_interval: Number(profile.fragment_interval) || 0.25,
+    fragment_interval: Number.isFinite(fragmentInterval)
+      ? fragmentInterval
+      : 0.08,
     seed: Number.isFinite(Number(profile.seed)) ? Number(profile.seed) : 42,
     top_k: Number(profile.top_k) || 15,
     top_p: Number(profile.top_p) || 1,
@@ -185,7 +194,7 @@ async function synthesize(
     });
     await IOUtils.write(path, bytes);
     Zotero.debug(
-      `[ZotEasyTran] voice service ${bytes.byteLength} bytes -> ${path}`,
+      `[ZotEasyTran] voice service ${bytes.byteLength} bytes (interval=${fragmentInterval}) -> ${path}`,
     );
     return { bytes, path };
   } catch (error) {

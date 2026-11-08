@@ -148,6 +148,7 @@ declare namespace _ZoteroTypes {
       "local.voiceServiceUrl": string;
       "local.voiceServiceProfile": string;
       "local.voiceServiceTimeout": string;
+      "local.voiceServiceFragmentInterval": string;
       "local.paragraphLimit": string;
     };
   }

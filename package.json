@@ -1,6 +1,6 @@
 {
   "name": "zoteasytran",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "ZotEasyTran: fully local English-to-Chinese translation for Zotero, with an offline dictionary, a rule-based sentence engine, and system TTS.",
   "config": {
     "addonName": "ZotEasyTran",
